@@ -1,7 +1,7 @@
 pragma solidity ^0.4.23;
 
-import "StandardToken.sol";
-import "Ownable.sol";
+import "./StandardToken.sol";
+import "./Ownable.sol";
 
 
 /**

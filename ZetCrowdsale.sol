@@ -80,34 +80,16 @@ contract ZetCrowsaleInfo
     uint256 constant BONUS_LARGE_RATE = 10;
 }
 
-
-
-contract ZetTestCrowdsale is 
-     CappedCrowdsale,  MintedCrowdsale, ZetCrowsaleInfo  {
-
-  constructor(
-    address _wallet
-  )
-  public 
-    Crowdsale(TOKEN_RATE, _wallet, new ZetCrowdsaleToken())
-    CappedCrowdsale(WEI_CAP)
-    
-    {
-    
-    }
-    
-            
-}
 /**
  * @title BonusRefundableCrowdsale
  * @dev FinalizableCrowdsale with Bonus Support.
  */
 
-contract BonusRefundableCrowdsale is RefundableCrowdsale, ZetCrowsaleInfo {
+contract BonusRefundableCrowdsale is TimedCrowdsale, ZetCrowsaleInfo {
 
         constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal) public 
         TimedCrowdsale(_openingTime, _closingTime)
-        RefundableCrowdsale(_goal)
+        //RefundableCrowdsale(_goal)
         {   
         }
         
