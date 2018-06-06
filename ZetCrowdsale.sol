@@ -33,18 +33,21 @@ contract ZetCrowsaleInfo
     // converted using https://www.epochconverter.com/ 
     uint256 constant CLOSING_DT =1535760000;
     
-    // Rate 1 WEI  - 
+    // Rate 1 Etherium - 1000 local currency
     uint256 constant TOKEN_RATE = 1000;
     
     //   CAP -  maximum amount of wei accepted in the crowdsale. 
-    uint256 constant WEI_CAP =    1000000000000000000;
+	// https://etherconverter.online/ Equals to 1 Million Dollar
+	uint256 constant WEI_HARD_CAP =    1673050000000000000000;
 
- //   CAP -  maximum amount of wei accepted in the crowdsale. 
-    uint256 constant WEI_GOAL =    700000000000000000;
+	//   CAP -  goal amount of wei  in the crowdsale. 
+	// https://etherconverter.online/ Equals to 1 Million Dollar
+    uint256 constant WEI_SOFT_CAP =    1673050000000000000000;
     
     /*    maximum amount of wei accepted in the pre-sale. */    
-    uint256 constant PRESALE_WEI_CAP    = 100000000000000;
-    uint256 constant PRESALE_ONE_BONUS_RATE = 50;
+	// https://etherconverter.online/ Equals to 100K dollars
+    uint256 constant PRESALE_WEI_HARD_CAP    = 167305000000000000000;
+	uint256 constant PRESALE_ONE_BONUS_RATE = 50;
     /* converted using https://www.epochconverter.com/ 1-Sep-2018*/
     uint256 constant PRESALE_CLOSING_DT =1535760000;
 
@@ -67,11 +70,12 @@ contract ZetCrowsaleInfo
     
     uint256 constant BONUS_ONE_RATE = 0;
     //15  Ether
-    uint256 constant BONUS_ONE_WEI  = 15000000000000000000;
+    uint256 constant BONUS_ONE_WEI  = 15000000000000000000;									  
     
     uint256 constant BONUS_TWO_RATE = 2;
     // 70 Ether
     uint256 constant BONUS_TWO_WEI = 70000000000000000000;
+								 
     
     uint256 constant BONUS_THREE_RATE = 5;
     // 300 Ether
@@ -188,8 +192,7 @@ contract BonusRefundableCrowdsale is TimedCrowdsale, ZetCrowsaleInfo {
     uint256 bonusPersentage = calcBonusPersentage(_weiAmount);
     uint256 accumPersentage  = SafeMath.add(salePersentage, bonusPersentage);
     accumPersentage = SafeMath.add(100, accumPersentage);
-    return accumPersentage; // Zelik
-    
+        
     uint256 tokenAmount = super._getTokenAmount(_weiAmount);
     if (accumPersentage == 100)
       return tokenAmount;
@@ -380,8 +383,8 @@ contract ZetCrowdsale is
   )
   public 
     Crowdsale(TOKEN_RATE, _wallet, new ZetCrowdsaleToken())
-    CappedCrowdsale(WEI_CAP)
-    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_GOAL)    
+    CappedCrowdsale(WEI_HARD_CAP)
+    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_SOFT_CAP)    
     
     {
     
