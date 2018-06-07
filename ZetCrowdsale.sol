@@ -38,11 +38,12 @@ contract ZetCrowsaleInfo
     
     //   CAP -  maximum amount of wei accepted in the crowdsale. 
     //  use https://etherconverter.online/ to convert
-    uint256 constant WEI_CAP =    1000000000000000000;
+    uint256 constant WEI_HARD_CAP =    1000000000000000000;
 
-   //   CAP -  maximum amount of wei accepted in the crowdsale. 
+   //   CAP -  maximum goal amount of wei accepted in the crowdsale. 
    //  use https://etherconverter.online/ to convert
-    uint256 constant WEI_GOAL =    700000000000000000;
+    uint256 constant WEI_SOFT_CAP =    700000000000000000;
+                                      
     
     // WEI - minimum ammount for purchase
     // 0.02 Ether.
@@ -387,8 +388,8 @@ contract ZetCrowdsale is
   )
   public 
     Crowdsale(TOKEN_RATE, _wallet, new ZetCrowdsaleToken())
-    CappedCrowdsale(WEI_CAP)
-    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_GOAL)    
+    CappedCrowdsale(WEI_HARD_CAP)
+    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_SOFT_CAP)    
     {
     }
     
