@@ -184,29 +184,45 @@ contract BonusRefundableCrowdsale is  TimedCrowdsale, /*RefundableCrowdsale,*/ Z
             }
             
             
-   /**
-   * 
-   * @dev Token conversion.  
-   * @param _weiAmount Value in wei to be converted into tokens
-   * @return Number of tokens that can be purchased with the specified _weiAmount
-   */
-  function _getTokenAmount(uint256 _weiAmount)
-    internal view returns (uint256)
-  {
-    uint256 salePersentage = calcSalePeriodPersentage();
-    uint256 bonusPersentage = calcBonusPersentage(_weiAmount);
-    uint256 accumPersentage  = SafeMath.add(salePersentage, bonusPersentage);
-    accumPersentage = SafeMath.add(100, accumPersentage);
-    
-    uint256 tokenAmount = super._getTokenAmount(_weiAmount);
-    if (accumPersentage == 100)
-      return tokenAmount;
-        
-    tokenAmount = SafeMath.div(tokenAmount, 100);
-    tokenAmount = SafeMath.mul(tokenAmount, accumPersentage);
-    
-    return tokenAmount;
-  }
+           /**
+           * 
+           * @dev Token conversion.  
+           * @param _weiAmount Value in wei to be converted into tokens
+           * @return Number of tokens that can be purchased with the specified _weiAmount
+           */
+          function _getTokenAmount(uint256 _weiAmount)
+            internal view returns (uint256)
+          {
+            uint256 salePersentage = calcSalePeriodPersentage();
+            uint256 bonusPersentage = calcBonusPersentage(_weiAmount);
+            uint256 accumPersentage  = SafeMath.add(salePersentage, bonusPersentage);
+            accumPersentage = SafeMath.add(100, accumPersentage);
+            
+            uint256 tokenAmount = super._getTokenAmount(_weiAmount);
+            if (accumPersentage == 100)
+              return tokenAmount;
+                
+            tokenAmount = SafeMath.div(tokenAmount, 100);
+            tokenAmount = SafeMath.mul(tokenAmount, accumPersentage);
+            
+            return tokenAmount;
+          }
+          
+          /**
+           * @dev Extend parent behavior requiring purchase to respect the funding cap.
+           * @param _beneficiary Token purchaser
+           * @param _weiAmount Amount of wei contributed
+           */
+          function _preValidatePurchase(
+            address _beneficiary,
+            uint256 _weiAmount
+          )
+            internal
+          {
+            super._preValidatePurchase(_beneficiary, _weiAmount);
+            if (isPresale())
+                require(weiRaised.add(_weiAmount) <= PRESALE_WEI_CAP);
+          }
 
 }
 
