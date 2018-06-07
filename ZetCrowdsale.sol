@@ -37,12 +37,20 @@ contract ZetCrowsaleInfo
     uint256 constant TOKEN_RATE = 1000;
     
     //   CAP -  maximum amount of wei accepted in the crowdsale. 
+    //  use https://etherconverter.online/ to convert
     uint256 constant WEI_CAP =    1000000000000000000;
 
- //   CAP -  maximum amount of wei accepted in the crowdsale. 
+   //   CAP -  maximum amount of wei accepted in the crowdsale. 
+   //  use https://etherconverter.online/ to convert
     uint256 constant WEI_GOAL =    700000000000000000;
     
+    // WEI - minimum ammount for purchase
+    // 0.02 Ether.
+    uint256 constant WEI_PURCHASE_MIN =    20000000000000000;
+    
+    
     /*    maximum amount of wei accepted in the pre-sale. */    
+    //  use https://etherconverter.online/ to convert
     uint256 constant PRESALE_WEI_CAP    = 100000000000000;
     uint256 constant PRESALE_ONE_BONUS_RATE = 50;
     /* converted using https://www.epochconverter.com/ 1-Sep-2018*/
@@ -85,11 +93,11 @@ contract ZetCrowsaleInfo
  * @dev FinalizableCrowdsale with Bonus Support.
  */
 
-contract BonusRefundableCrowdsale is RefundableCrowdsale, ZetCrowsaleInfo {
+contract BonusRefundableCrowdsale is  TimedCrowdsale, /*RefundableCrowdsale,*/ ZetCrowsaleInfo {
 
         constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal) public 
         TimedCrowdsale(_openingTime, _closingTime)
-        RefundableCrowdsale(_goal)
+        //RefundableCrowdsale(_goal)
         {   
         }
         
@@ -383,4 +391,18 @@ contract ZetCrowdsale is
     DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_GOAL)    
     {
     }
+    
+     /**
+   * @dev Validation of an incoming purchase. Use require statements to revert state when conditions are not met. Use super to concatenate validations.
+   * @param _beneficiary Address performing the token purchase
+   * @param _weiAmount Value in wei involved in the purchase
+   */
+  function _preValidatePurchase(
+    address _beneficiary,
+    uint256 _weiAmount
+  ) internal
+  {
+      super._preValidatePurchase(_beneficiary, _weiAmount);
+      require(_weiAmount>= WEI_PURCHASE_MIN);
+  }
 }
