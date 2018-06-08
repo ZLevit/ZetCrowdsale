@@ -33,26 +33,28 @@ contract ZetCrowsaleInfo
     // converted using https://www.epochconverter.com/ 
     uint256 constant CLOSING_DT =1535760000;
     
-    // Rate 1 WEI  - 1000
-    uint256 constant TOKEN_RATE = 1000;
+    // Rate 1 WEI  - 6000
+    uint256 constant TOKEN_RATE = 6000;
     
-    //   CAP -  maximum amount of wei accepted in the crowdsale. 
+    //   HARD CAP -  maximum amount of wei accepted in the crowdsale. 
     //  use https://etherconverter.online/ to convert
-    uint256 constant WEI_HARD_CAP =    1000000000000000000;
+    uint256 constant WEI_HARD_CAP =     70000000000000000000;
 
-   //   CAP -  maximum goal amount of wei accepted in the crowdsale. 
+   //   SOFT CAP -  maximum amount of wei accepted in the crowdsale. 
    //  use https://etherconverter.online/ to convert
-    uint256 constant WEI_SOFT_CAP =    700000000000000000;
-                                      
+    uint256 constant WEI_SOFT_CAP =     10000000000000000000;
     
     // WEI - minimum ammount for purchase
     // 0.02 Ether.
-    uint256 constant WEI_PURCHASE_MIN =    20000000000000000;
+    uint256 constant WEI_PURCHASE_MIN = 20000000000000000;
     
+    // WEI_BONUS_FINALIZE - ammount allocated to team in wei
+    // 100, 000 eth
+    uint256 constant WEI_BONUS_FINALIZE = 100000000000000000000000;
     
     /*    maximum amount of wei accepted in the pre-sale. */    
     //  use https://etherconverter.online/ to convert
-    uint256 constant PRESALE_WEI_CAP    = 100000000000000;
+    uint256 constant PRESALE_WEI_CAP    = 163952988410350003200;
     uint256 constant PRESALE_ONE_BONUS_RATE = 50;
     /* converted using https://www.epochconverter.com/ 1-Sep-2018*/
     uint256 constant PRESALE_CLOSING_DT =1535760000;
@@ -89,17 +91,31 @@ contract ZetCrowsaleInfo
     uint256 constant BONUS_LARGE_RATE = 10;
 }
 
+
+
 /**
  * @title BonusRefundableCrowdsale
  * @dev FinalizableCrowdsale with Bonus Support.
  */
 
-contract BonusRefundableCrowdsale is  TimedCrowdsale, /*RefundableCrowdsale,*/ ZetCrowsaleInfo {
+contract BonusRefundableCrowdsale is CappedCrowdsale, 
+                TimedCrowdsale, FinalizableCrowdsale, /*RefundableCrowdsale,*/ 
+                MintedCrowdsale, ZetCrowsaleInfo {
 
-        constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal) public 
+
+        address public reservedFundsWallet ;
+
+        constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal, 
+           address _wallet, address _reservedFundsWallet, 
+           ERC20 _token) public
+        Crowdsale(TOKEN_RATE, _wallet, _token)
+        CappedCrowdsale(WEI_HARD_CAP)
         TimedCrowdsale(_openingTime, _closingTime)
         //RefundableCrowdsale(_goal)
-        {   
+        { 
+            require(_reservedFundsWallet != 0);
+            
+            reservedFundsWallet = _reservedFundsWallet;
         }
         
         // @dev Checks if current period is presale period 
@@ -209,7 +225,7 @@ contract BonusRefundableCrowdsale is  TimedCrowdsale, /*RefundableCrowdsale,*/ Z
           }
           
           /**
-           * @dev Extend parent behavior requiring purchase to respect the funding cap.
+           * @dev   PRE-SALE cap implemenetation AND Minimum WEI purchase Validation
            * @param _beneficiary Token purchaser
            * @param _weiAmount Amount of wei contributed
            */
@@ -222,6 +238,18 @@ contract BonusRefundableCrowdsale is  TimedCrowdsale, /*RefundableCrowdsale,*/ Z
             super._preValidatePurchase(_beneficiary, _weiAmount);
             if (isPresale())
                 require(weiRaised.add(_weiAmount) <= PRESALE_WEI_CAP);
+                
+             require(_weiAmount>= WEI_PURCHASE_MIN);
+          }
+          
+           /**
+           * @dev while finalize - deliver tokens to team, etc.
+           * should call super.finalization() to ensure the chain of finalization is
+           * executed entirely.
+           */
+          function finalization() internal {
+              super.finalization();
+              _deliverTokens(reservedFundsWallet, WEI_BONUS_FINALIZE);    
           }
 
 }
@@ -322,8 +350,8 @@ contract DbgHelper {
 
 contract DbgBonusRefundableCrowdsale is BonusRefundableCrowdsale, DbgHelper {
 
-   constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal) public  
-    BonusRefundableCrowdsale(_openingTime, _closingTime, _goal)
+   constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal,address _wallet, address _reservedFundsWallet, ERC20 _token) public  
+    BonusRefundableCrowdsale(_openingTime, _closingTime, _goal, _wallet, _reservedFundsWallet, _token)
     DbgHelper()
     {   
     }
@@ -397,29 +425,16 @@ contract DbgBonusRefundableCrowdsale is BonusRefundableCrowdsale, DbgHelper {
 
 
 contract ZetCrowdsale is 
-     CappedCrowdsale, DbgBonusRefundableCrowdsale, MintedCrowdsale  {
+     DbgBonusRefundableCrowdsale  {
 
   constructor(
-    address _wallet
+    address _wallet,
+    address _reservedFundsWallet
   )
   public 
-    Crowdsale(TOKEN_RATE, _wallet, new ZetCrowdsaleToken())
-    CappedCrowdsale(WEI_HARD_CAP)
-    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_SOFT_CAP)    
+    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_SOFT_CAP, _wallet, _reservedFundsWallet, new ZetCrowdsaleToken())    
     {
     }
     
-     /**
-   * @dev Validation of an incoming purchase. Use require statements to revert state when conditions are not met. Use super to concatenate validations.
-   * @param _beneficiary Address performing the token purchase
-   * @param _weiAmount Value in wei involved in the purchase
-   */
-  function _preValidatePurchase(
-    address _beneficiary,
-    uint256 _weiAmount
-  ) internal
-  {
-      super._preValidatePurchase(_beneficiary, _weiAmount);
-      require(_weiAmount>= WEI_PURCHASE_MIN);
-  }
+ 
 }
