@@ -428,11 +428,10 @@ contract ZetCrowdsale is
      DbgBonusRefundableCrowdsale  {
 
   constructor(
-    address _wallet,
-    address _reservedFundsWallet
+    address _wallet
   )
   public 
-    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_SOFT_CAP, _wallet, _reservedFundsWallet, new ZetCrowdsaleToken())    
+    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_SOFT_CAP, _wallet, _wallet, new ZetCrowdsaleToken())    
     {
     }
     
