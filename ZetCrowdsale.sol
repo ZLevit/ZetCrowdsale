@@ -55,7 +55,7 @@ contract ZetCrowsaleInfo
     /*    maximum amount of wei accepted in the pre-sale. */    
     //  use https://etherconverter.online/ to convert
     uint256 constant PRESALE_WEI_CAP    = 163952988410350003200;
-    uint256 constant PRESALE_ONE_BONUS_RATE = 50;
+    uint256 constant PRESALE_ONE_BONUS_RATE = 100;
     /* converted using https://www.epochconverter.com/ 1-Sep-2018*/
     uint256 constant PRESALE_CLOSING_DT =1535760000;
 
@@ -105,13 +105,11 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
 
         address public reservedFundsWallet ;
 
-        constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal, 
-           address _wallet, address _reservedFundsWallet, 
-           ERC20 _token) public
+        constructor( address _wallet, address _reservedFundsWallet,   ERC20 _token) public
         Crowdsale(TOKEN_RATE, _wallet, _token)
         CappedCrowdsale(WEI_HARD_CAP)
-        TimedCrowdsale(_openingTime, _closingTime)
-        //RefundableCrowdsale(_goal)
+        TimedCrowdsale(OPENNING_DT, CLOSING_DT)
+        //RefundableCrowdsale(WEI_SOFT_CAP)
         { 
             require(_reservedFundsWallet != 0);
             
@@ -236,6 +234,7 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
             internal
           {
             super._preValidatePurchase(_beneficiary, _weiAmount);
+            
             if (isPresale())
                 require(weiRaised.add(_weiAmount) <= PRESALE_WEI_CAP);
                 
@@ -249,7 +248,18 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
            */
           function finalization() internal {
               super.finalization();
-              _deliverTokens(reservedFundsWallet, WEI_BONUS_FINALIZE);    
+              deliverBonusTokens();
+              //_deliverTokens(reservedFundsWallet, WEI_BONUS_FINALIZE);       
+          }
+          
+           /**
+            * ZELIK : EXPERIMENTAL
+           * @dev while finalize - deliver team bonus tokens
+           * should call super.finalization() to ensure the chain of finalization is
+           * executed entirely.
+           */
+          function deliverBonusTokens() public    {
+              _deliverTokens(reservedFundsWallet, WEI_BONUS_FINALIZE);       
           }
 
 }
@@ -350,8 +360,8 @@ contract DbgHelper {
 
 contract DbgBonusRefundableCrowdsale is BonusRefundableCrowdsale, DbgHelper {
 
-   constructor(uint256 _openingTime, uint256 _closingTime, uint256 _goal,address _wallet, address _reservedFundsWallet, ERC20 _token) public  
-    BonusRefundableCrowdsale(_openingTime, _closingTime, _goal, _wallet, _reservedFundsWallet, _token)
+   constructor(address _wallet, address _reservedFundsWallet, ERC20 _token) public  
+    BonusRefundableCrowdsale(_wallet, _reservedFundsWallet, _token)
     DbgHelper()
     {   
     }
@@ -428,10 +438,10 @@ contract ZetCrowdsale is
      DbgBonusRefundableCrowdsale  {
 
   constructor(
-    address _wallet
+    address _wallet, address _reservedFundsWallet
   )
   public 
-    DbgBonusRefundableCrowdsale(OPENNING_DT, CLOSING_DT, WEI_SOFT_CAP, _wallet, _wallet, new ZetCrowdsaleToken())    
+    DbgBonusRefundableCrowdsale(_wallet, _reservedFundsWallet, new ZetCrowdsaleToken())    
     {
     }
     
