@@ -299,6 +299,10 @@ contract DbgHelper {
         dbgPeriodValue = DBG_SALE_3_PERIOD_VALUE;
     }
     
+     function dbgStartSaleFour() public  {
+        dbgPeriodValue = DBG_SALE_4_PERIOD_VALUE;
+    }
+    
      function dbgStartCrowdsale() public  {
         dbgPeriodValue = DBG_CROWDSALE_PERIOD_VALUE;
     }
@@ -444,6 +448,4 @@ contract ZetCrowdsale is
     DbgBonusRefundableCrowdsale(_wallet, _reservedFundsWallet, new ZetCrowdsaleToken())    
     {
     }
-    
- 
 }
