@@ -48,9 +48,9 @@ contract ZetCrowsaleInfo
     // 0.02 Ether.
     uint256 constant WEI_PURCHASE_MIN = 20000000000000000;
     
-    // WEI_BONUS_FINALIZE - ammount allocated to team in wei
-    // 100, 000 eth
-    uint256 constant WEI_BONUS_FINALIZE = 100000000000000000000000;
+    // TOKEN_BONUS_FINALIZE - ammount allocated to team in token
+    // 100, 000 
+    uint256 constant TOKEN_BONUS_FINALIZE = 100000000000000000000000;
     
     /*    maximum amount of wei accepted in the pre-sale. */    
     //  use https://etherconverter.online/ to convert
@@ -91,27 +91,34 @@ contract ZetCrowsaleInfo
     uint256 constant BONUS_LARGE_RATE = 10;
 }
 
-
-
 /**
  * @title BonusRefundableCrowdsale
  * @dev FinalizableCrowdsale with Bonus Support.
  */
 
 contract BonusRefundableCrowdsale is CappedCrowdsale, 
-                TimedCrowdsale, FinalizableCrowdsale, /*RefundableCrowdsale,*/ 
+                TimedCrowdsale, RefundableCrowdsale,
                 MintedCrowdsale, ZetCrowsaleInfo {
 
 
         address public reservedFundsWallet ;
 
+        // tokens delivered as bonus
+        uint256 public deliveredBonusTokens;
+        
+        // tokens purchased during ICO
+        uint256 public purchasedTokens;
+        
         constructor( address _wallet, address _reservedFundsWallet,   ERC20 _token) public
         Crowdsale(TOKEN_RATE, _wallet, _token)
         CappedCrowdsale(WEI_HARD_CAP)
         TimedCrowdsale(OPENNING_DT, CLOSING_DT)
-        //RefundableCrowdsale(WEI_SOFT_CAP)
+        RefundableCrowdsale(WEI_SOFT_CAP)
         { 
             require(_reservedFundsWallet != 0);
+        
+            deliveredBonusTokens = 0;
+            purchasedTokens = 0;
             
             reservedFundsWallet = _reservedFundsWallet;
         }
@@ -241,25 +248,60 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
              require(_weiAmount>= WEI_PURCHASE_MIN);
           }
           
-           /**
+          /**
+           * @dev Executed when a purchase has been validated and is ready to be executed. Not necessarily emits/sends tokens.
+           * @param _beneficiary Address receiving the tokens
+           * @param _tokenAmount Number of tokens to be purchased
+           */
+          function _processPurchase(
+            address _beneficiary,
+            uint256 _tokenAmount
+          )
+            internal
+            {
+                super._processPurchase(_beneficiary, _tokenAmount);
+                purchasedTokens = SafeMath.add(purchasedTokens, _tokenAmount);
+            }
+            
+          /**
            * @dev while finalize - deliver tokens to team, etc.
            * should call super.finalization() to ensure the chain of finalization is
            * executed entirely.
            */
           function finalization() internal {
               super.finalization();
-              deliverBonusTokens();
-              //_deliverTokens(reservedFundsWallet, WEI_BONUS_FINALIZE);       
+              finalDeliverBonusTokens();
           }
           
+          
+          /**
+           * @dev while finalize - deliver team bonus tokens
+           * Deliver some bonus tokens.
+           */
+          function deliverSomeBonusTokens(uint256 tokenAmount) onlyOwner public    {
+              if (SafeMath.add(deliveredBonusTokens, tokenAmount) > TOKEN_BONUS_FINALIZE)  
+              {
+                tokenAmount =   SafeMath.sub(TOKEN_BONUS_FINALIZE, deliveredBonusTokens);     
+              }
+              
+              _deliverTokens(reservedFundsWallet, TOKEN_BONUS_FINALIZE);       
+              deliveredBonusTokens = SafeMath.add(deliveredBonusTokens, tokenAmount);
+          }
+                
            /**
-            * ZELIK : EXPERIMENTAL
            * @dev while finalize - deliver team bonus tokens
            * should call super.finalization() to ensure the chain of finalization is
            * executed entirely.
            */
-          function deliverBonusTokens() public    {
-              _deliverTokens(reservedFundsWallet, WEI_BONUS_FINALIZE);       
+          function finalDeliverBonusTokens() onlyOwner public    {
+              if (deliveredBonusTokens > TOKEN_BONUS_FINALIZE)  
+                return;
+              
+              uint256 tokenAmount = SafeMath.sub(TOKEN_BONUS_FINALIZE, deliveredBonusTokens);
+              
+              _deliverTokens(reservedFundsWallet, TOKEN_BONUS_FINALIZE);       
+              
+              deliveredBonusTokens = SafeMath.add(deliveredBonusTokens, tokenAmount);
           }
 
 }
@@ -369,7 +411,7 @@ contract DbgBonusRefundableCrowdsale is BonusRefundableCrowdsale, DbgHelper {
     DbgHelper()
     {   
     }
-    
+       
     function onlyWhileOpen() internal   {
         
      if (isDbgEnabled())
