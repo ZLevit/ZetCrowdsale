@@ -39,7 +39,7 @@ contract ZetCrowsaleInfo
     //   HARD CAP -  maximum amount of wei accepted in the crowdsale. 
     //  use https://etherconverter.online/ to convert
     uint256 constant WEI_HARD_CAP =     70000000000000000000;
-
+                                        
    //   SOFT CAP -  maximum amount of wei accepted in the crowdsale. 
    //  use https://etherconverter.online/ to convert
     uint256 constant WEI_SOFT_CAP =     10000000000000000000;
@@ -97,8 +97,9 @@ contract ZetCrowsaleInfo
  */
 
 contract BonusRefundableCrowdsale is CappedCrowdsale, 
-                TimedCrowdsale, RefundableCrowdsale,
-                MintedCrowdsale, ZetCrowsaleInfo {
+                TimedCrowdsale, MintedCrowdsale,// FinalizableCrowdsale 
+                RefundableCrowdsale
+                , ZetCrowsaleInfo {
 
 
         address public reservedFundsWallet ;
@@ -108,21 +109,26 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
         
         // tokens purchased during ICO
         uint256 public purchasedTokens;
-        
+
+ 
         constructor( address _wallet, address _reservedFundsWallet,   ERC20 _token) public
         Crowdsale(TOKEN_RATE, _wallet, _token)
         CappedCrowdsale(WEI_HARD_CAP)
         TimedCrowdsale(OPENNING_DT, CLOSING_DT)
         RefundableCrowdsale(WEI_SOFT_CAP)
+        //FinalizableCrowdsale
         { 
+            
             require(_reservedFundsWallet != 0);
         
             deliveredBonusTokens = 0;
             purchasedTokens = 0;
             
             reservedFundsWallet = _reservedFundsWallet;
+        
         }
         
+    
         // @dev Checks if current period is presale period 
         // @return true if current period is pre sale.
         function isPresale() internal constant returns (bool) {
@@ -269,6 +275,7 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
            * executed entirely.
            */
           function finalization() internal {
+              
               super.finalization();
               finalDeliverBonusTokens();
           }
