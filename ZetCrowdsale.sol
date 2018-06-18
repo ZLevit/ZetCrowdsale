@@ -6,7 +6,6 @@ import "./MintedCrowdsale.sol";
 import "./TimedCrowdsale.sol";
 import "./RefundableCrowdsale.sol";
 import "./DateTime.sol";
-
 import "./ZetCrowdsaleToken.sol";
 import "./ZetCrowdsaleInfo.sol";
 
@@ -114,6 +113,10 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
            */
             function calcBonusPersentage(uint256 _weiAmount) internal returns (uint256)
             {
+                // no volume bonuses
+                if (isPresale())
+                    return 0;
+                    
                 if (_weiAmount < BONUS_ONE_WEI)
                   return BONUS_ONE_RATE;
                 else if (_weiAmount < BONUS_TWO_WEI)
