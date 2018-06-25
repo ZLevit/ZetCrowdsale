@@ -11,11 +11,11 @@ contract ZetCrowsaleInfo
     // date converted using https://www.epochconverter.com/
     // ETH converted using https://www.cryps.info/en/Wei_to_ETH
     
-    // Openning sale date 16-Jul-2018
-    uint256 constant OPENNING_DT = 1531699200;
+    // Openning sale date 16-Jul-2018 12:00 GMT
+    uint256 constant OPENNING_DT = 1531742400;
     
-    // Closing sale date 17-Sep-2018 
-    uint256 constant CLOSING_DT = 1537142400;
+    // Closing sale date 17-Sep-2018 12:00 GMT
+    uint256 constant CLOSING_DT = 1537185600;
     
     // Rate 1 ETH = 5000 FRECN
     uint256 constant TOKEN_RATE = 5000;

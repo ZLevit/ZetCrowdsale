@@ -19,7 +19,7 @@ contract TimedCrowdsale is Crowdsale {
    */
   function onlyWhileOpen() internal  {
     // solium-disable-next-line security/no-block-members
-    require(/*block.timestamp >= openingTime &&*/ block.timestamp <= closingTime);
+    require(block.timestamp >= openingTime && block.timestamp <= closingTime);
     
   }
 

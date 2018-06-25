@@ -246,7 +246,7 @@ contract DbgHelper {
     
     constructor () public
     {
-        dbgPeriodValue = DBG_PRESALE_PERIOD_VALUE;
+        dbgPeriodValue = DBG_DISABLE;
     }
 
     function dbgStartPresale() public      {
