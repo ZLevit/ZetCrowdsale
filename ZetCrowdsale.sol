@@ -208,7 +208,7 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
                 tokenAmount =   SafeMath.sub(TOKEN_BONUS_FINALIZE, deliveredBonusTokens);     
               }
               
-              _deliverTokens(reservedFundsWallet, TOKEN_BONUS_FINALIZE);       
+              _deliverTokens(reservedFundsWallet, tokenAmount);       
               deliveredBonusTokens = SafeMath.add(deliveredBonusTokens, tokenAmount);
           }
                 
@@ -218,12 +218,12 @@ contract BonusRefundableCrowdsale is CappedCrowdsale,
            * executed entirely.
            */
           function finalDeliverBonusTokens() onlyOwner public    {
-              if (deliveredBonusTokens > TOKEN_BONUS_FINALIZE)  
+              if (deliveredBonusTokens >= TOKEN_BONUS_FINALIZE)  
                 return;
               
               uint256 tokenAmount = SafeMath.sub(TOKEN_BONUS_FINALIZE, deliveredBonusTokens);
               
-              _deliverTokens(reservedFundsWallet, TOKEN_BONUS_FINALIZE);       
+              _deliverTokens(reservedFundsWallet, tokenAmount);       
               
               deliveredBonusTokens = SafeMath.add(deliveredBonusTokens, tokenAmount);
           }
